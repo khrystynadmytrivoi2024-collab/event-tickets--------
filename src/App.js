@@ -9,8 +9,7 @@ import {
   signOut 
 } from "firebase/auth";
 
-// 1. КОНФІГУРАЦІЯ FIREBASE
-// Христино, встав сюди свої дані з Firebase Console (Project Settings -> General)
+// --- КОНФІГУРАЦІЯ FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyBE_T0bxUK3itKKKGP6ZXoYOX8nJCq10g8",
   authDomain: "event-tickets-5e625.firebaseapp.com",
@@ -21,12 +20,11 @@ const firebaseConfig = {
   measurementId: "G-107MZXYPGH"
 };
 
-
 // Ініціалізація Firebase
 const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
 
-// 2. ПОСИЛАННЯ НА  БЕКЕНД (Від Railway)
+// --- ПОСИЛАННЯ НА БЕКЕНД (Railway) ---
 const API_URL = "https://event-backend-production-349d.up.railway.app";
 
 // --- КОМПОНЕНТ: Картка події ---
@@ -69,14 +67,14 @@ const EventCard = ({ event, user, onRate, onBook }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:-translate-y-1 border border-gray-100">
+    <div className="bg-white rounded-xl shadow-md overflow-hidden transition-transform hover:-translate-y-1 border border-gray-100 flex flex-col h-full">
       <img 
         className="w-full h-48 object-cover" 
         src={event.img || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=400&q=80'} 
         alt={event.title} 
       />
-      <div className="p-6">
-        <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full uppercase">
+      <div className="p-6 flex flex-col flex-grow">
+        <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-3 py-1 rounded-full uppercase w-fit">
           {event.type}
         </span>
         <h3 className="text-xl font-bold mt-3 text-gray-900 leading-tight">{event.title}</h3>
@@ -91,7 +89,7 @@ const EventCard = ({ event, user, onRate, onBook }) => {
         {user ? (
           <div className="mt-4">
             <select 
-              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
               onChange={(e) => {
                 onRate(event.id, Number(e.target.value), user.email);
                 if (showReviews) fetchReviews(1);
@@ -121,7 +119,7 @@ const EventCard = ({ event, user, onRate, onBook }) => {
           </button>
         </div>
 
-        <div className="mt-6 pt-4 border-t border-gray-100">
+        <div className="mt-auto pt-4 border-t border-gray-100 mt-6">
           <button 
             className="w-full py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 rounded-lg border border-gray-200"
             onClick={handleToggleReviews}
@@ -136,9 +134,9 @@ const EventCard = ({ event, user, onRate, onBook }) => {
               ) : (
                 <ul className="divide-y divide-gray-50">
                   {reviews.map((r, index) => (
-                    <li key={index} className="py-2 flex justify-between items-center">
-                      <span className="font-bold text-gray-700 text-sm">⭐ {r.score}</span>
-                      <span className="text-gray-400 text-xs italic">{r.user}</span>
+                    <li key={index} className="py-2 flex justify-between items-center text-sm">
+                      <span className="font-bold text-gray-700">⭐ {r.score}</span>
+                      <span className="text-gray-400 text-xs italic truncate ml-2" title={r.user}>{r.user}</span>
                     </li>
                   ))}
                 </ul>
@@ -317,12 +315,14 @@ export default function App() {
                           type="email" 
                           placeholder="Email адреса" 
                           className="w-full bg-gray-50 border border-gray-200 px-4 py-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                          value={email}
                           onChange={e => setEmail(e.target.value)} 
                         />
                         <input 
                           type="password" 
                           placeholder="Ваш пароль" 
                           className="w-full bg-gray-50 border border-gray-200 px-4 py-3 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                          value={password}
                           onChange={e => setPassword(e.target.value)} 
                         />
                       </div>
