@@ -10,6 +10,7 @@ import {
 } from "firebase/auth";
 
 // --- КОНФІГУРАЦІЯ FIREBASE ---
+// Використовуємо ваші актуальні дані
 const firebaseConfig = {
   apiKey: "AIzaSyBE_T0bxUK3itKKKGP6ZXoYOX8nJCq10g8",
   authDomain: "event-tickets-5e625.firebaseapp.com",
@@ -35,6 +36,7 @@ const EventCard = ({ event, user, onRate, onBook }) => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
 
+  // Вимога 3: Отримання оцінок з пагінацією
   const fetchReviews = async (pageNum) => {
     try {
       const res = await fetch(`${API_URL}/api/events/${event.id}/ratings?page=${pageNum}`);
@@ -44,8 +46,10 @@ const EventCard = ({ event, user, onRate, onBook }) => {
       if (pageNum === 1) {
         setReviews(data.ratings || []);
       } else {
+        // Додаємо нові відгуки до списку
         setReviews(prev => [...prev, ...(data.ratings || [])]);
       }
+      // Вимога 3: Перевірка, чи є ще дані для пагінації (ліміт 10)
       setHasMore(data.ratings?.length === 10);
     } catch (error) {
       console.error(error);
@@ -81,6 +85,7 @@ const EventCard = ({ event, user, onRate, onBook }) => {
         <p className="text-gray-500 text-sm mt-1">📅 {event.date || 'Незабаром'}</p>
         <p className="text-lg font-bold mt-2 text-gray-800">Ціна: {event.price} грн</p>
         
+        {/* Вимога 3: Відображення середньої оцінки, підрахованої на сервері */}
         <div className="flex items-center mt-2 mb-4 bg-amber-50 px-2 py-1 rounded-lg w-fit">
           <span className="text-amber-500 font-bold">⭐ {event.averageRating || "0.0"}</span>
           <span className="text-gray-400 text-xs ml-2">({event.ratingCount || 0} відгуків)</span>
@@ -91,8 +96,9 @@ const EventCard = ({ event, user, onRate, onBook }) => {
             <select 
               className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
               onChange={(e) => {
+                // Вимога 4: Збереження нової оцінки
                 onRate(event.id, Number(e.target.value), user.email);
-                if (showReviews) fetchReviews(1);
+                if (showReviews) fetchReviews(1); // Оновити список, якщо відкрито
               }}
             >
               <option value="">Поставити оцінку...</option>
@@ -119,6 +125,7 @@ const EventCard = ({ event, user, onRate, onBook }) => {
           </button>
         </div>
 
+        {/* Блок відгуків з пагінацією */}
         <div className="mt-auto pt-4 border-t border-gray-100 mt-6">
           <button 
             className="w-full py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50 rounded-lg border border-gray-200"
@@ -141,6 +148,7 @@ const EventCard = ({ event, user, onRate, onBook }) => {
                   ))}
                 </ul>
               )}
+              {/* Вимога 3: Кнопка пагінації на клієнтській частині */}
               {hasMore && (
                 <button 
                   className="w-full mt-2 py-2 text-xs font-bold text-blue-600 border border-blue-100 hover:bg-blue-50 rounded-lg"
@@ -181,26 +189,31 @@ export default function App() {
       const data = await response.json();
       setEvents(data);
     } catch (error) {
-      setServerError("Не вдалося підключитися до сервера Railway. Переконайтеся, що бекенд запущено.");
+      setServerError("Не вдалося підключитися до сервера Railway. Переконайтеся, що бекенд запустився.");
     }
   };
 
+  // Вимога 4: POST-запит для збереження оцінки та миттєве оновлення UI
   const handleRate = async (eventId, newScore, userEmail) => {
     try {
-      await fetch(`${API_URL}/api/events/${eventId}/rate`, {
+      const response = await fetch(`${API_URL}/api/events/${eventId}/rate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ newRating: newScore, userEmail: userEmail }),
       });
-      fetchEvents(); 
+      
+      if (response.ok) {
+        // Миттєве оновлення даних на сторінці (повторний запит всіх подій)
+        fetchEvents(); 
+      }
     } catch (error) {
-      console.error("Помилка відправки:", error);
+      console.error("Помилка відправки оцінки:", error);
     }
   };
 
   const handleBooking = (event, quantity) => {
     setBookings([...bookings, { ...event, quantity, total: event.price * quantity, bId: Date.now() }]);
-    alert(`Квитки додано: ${event.title} (x${quantity})`);
+    alert(`Квитки додано до кошика: ${event.title} (x${quantity})`);
   };
 
   const filteredEvents = events.filter(e => filter === 'Всі' || e.type === filter);
